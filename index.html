@@ -22,7 +22,27 @@
         .tab-button.active { background-color: #3B82F6; color: white; }
         .admin-panel { display: none; }
         .admin-panel.active { display: block; }
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 50; }
+        /* CSS para o modal de confirmação */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none; /* Garante que o modal esteja oculto por padrão */
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.visible { /* Classe para tornar o modal visível */
+            display: flex;
+            opacity: 1;
+            visibility: visible;
+        }
         .modal-content-custom { background-color: white; padding: 2rem; border-radius: 0.5rem; max-width: 400px; width: 90%; text-align: center; }
     </style>
 </head>
@@ -905,7 +925,7 @@
         // ATENÇÃO: PARA FINS DE DEMONSTRAÇÃO, A SENHA ESTÁ AQUI.
         // EM UM AMBIENTE DE PRODUÇÃO REAL, VOCÊ NUNCA DEVE ARMAZENAR SENHAS DIRETAMENTE NO CÓDIGO JAVASCRIPT DO CLIENTE.
         // USE UM SISTEMA DE AUTENTICAÇÃO ROBUSTO (COMO FIREBASE AUTHENTICATION) PARA PROTEGER O PAINEL DE ADMINISTRAÇÃO.
-        const ADMIN_PASSWORD = "admin123"; 
+        const ADMIN_PASSWORD = "Adm1n"; 
 
         // Global references for modal elements
         let confirmationModal;
@@ -928,25 +948,25 @@
                 if (currentModalCallback) {
                     currentModalCallback(true);
                 }
-                confirmationModal.classList.add('hidden'); // Hide the modal
-                currentModalCallback = null; // Clear the callback
+                confirmationModal.classList.remove('visible'); // Esconde o modal
+                currentModalCallback = null; // Limpa o callback
             });
 
             confirmNo.addEventListener('click', () => {
                 if (currentModalCallback) {
                     currentModalCallback(false);
                 }
-                confirmationModal.classList.add('hidden'); // Hide the modal
-                currentModalCallback = null; // Clear the callback
+                confirmationModal.classList.remove('visible'); // Esconde o modal
+                currentModalCallback = null; // Limpa o callback
             });
 
             // Allow clicking outside the modal to close it (optional, but good UX)
             confirmationModal.addEventListener('click', (e) => {
                 if (e.target === confirmationModal) {
                     if (currentModalCallback) { 
-                         currentModalCallback(false); // Treat as a "No" if clicked outside
+                         currentModalCallback(false); // Trata como "Não" se clicado fora
                     }
-                    confirmationModal.classList.add('hidden');
+                    confirmationModal.classList.remove('visible');
                     currentModalCallback = null;
                 }
             });
@@ -1031,13 +1051,13 @@
          * @param {Function} callback - A função a ser chamada com `true` (Sim) ou `false` (Não).
          */
         function showConfirmationModal(message, callback) {
-            // Reutiliza a função de setup, garantindo que os elementos e listeners estejam prontos
+            // Garante que os elementos e listeners do modal estejam prontos
             if (!confirmationModal) { 
                 setupModalListeners();
             }
             confirmationMessage.textContent = message;
             currentModalCallback = callback; // Armazena o callback para ser chamado pelos botões do modal
-            confirmationModal.classList.remove('hidden'); // Mostra o modal
+            confirmationModal.classList.add('visible'); // Mostra o modal
         }
 
         /**
