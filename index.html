@@ -658,9 +658,8 @@
                                 </div>
                                 <div class="lista-candidatos max-h-64 overflow-y-auto" data-region="8" data-tipo="pcd"></div>
                             </div>
-                            <div class="bg-white border rounded-lg">
-                                <div class="bg-purple-500 text-white p-4 rounded-t-lg">
-                                    <h4 class="font-semibold flex items-center">
+                            <div class="bg-purple-500 text-white p-4 rounded-t-lg">
+                                <h4 class="font-semibold flex items-center">
                                         🎯 PPP - Região 8
                                         <span class="ml-auto bg-purple-600 px-2 py-1 rounded text-sm" data-count="ppp-8">0</span>
                                     </h4>
@@ -745,7 +744,7 @@
                 } catch (error) {
                     // Em caso de erro na inicialização, registra no console
                     console.error("Erro ao inicializar Firebase:", error);
-                    // Aqui você poderia adicionar uma notificação visual ao usuário
+                    showNotification(`Erro ao inicializar Firebase: ${error.message}`, 'error'); // Adiciona notificação de erro
                 }
             }
 
@@ -775,7 +774,7 @@
                 }, (error) => {
                     // Em caso de erro no listener, registra no console
                     console.error("Erro ao receber atualizações do Firestore:", error);
-                    // Aqui você poderia adicionar uma notificação visual de erro
+                    showNotification(`Erro ao carregar dados: ${error.message}`, 'error'); // Adiciona notificação de erro
                 });
             }
 
@@ -790,8 +789,9 @@
             async addCandidate(region, candidate) {
                 // Verifica se o Firebase está pronto para operações de escrita
                 if (!this.isAuthReady) {
-                    console.error("Firestore não está pronto. Candidato não adicionado.");
-                    return false;
+                    const msg = "Firestore não está pronto. Candidato não adicionado. (Verifique a conexão e autenticação)";
+                    console.error(msg);
+                    return { success: false, error: msg };
                 }
                 try {
                     const candidatesCollectionRef = collection(this.db, `artifacts/${this.appId}/users/${this.userId}/candidates`);
@@ -801,11 +801,14 @@
                         timestamp: new Date().toISOString() // Adiciona um timestamp de criação
                     });
                     console.log(`Candidato adicionado no Firestore:`, candidate);
-                    return true;
+                    return { success: true };
                 }
                 catch (e) {
-                    console.error("Erro ao adicionar candidato ao Firestore: ", e);
-                    return false;
+                    // Captura o erro detalhado do Firebase e o retorna
+                    const msg = `Erro ao adicionar candidato ao Firestore. Verifique as regras de segurança do Firestore.`;
+                    console.error(msg, e);
+                    // Retorna a mensagem de erro específica do Firebase para ser exibida
+                    return { success: false, error: e.message }; 
                 }
             }
 
@@ -833,8 +836,9 @@
             // Exclui todos os documentos de candidatos do Firestore para o usuário atual.
             async clearAll() {
                 if (!this.isAuthReady) {
-                    console.error("Firestore não está pronto. Não é possível limpar os dados.");
-                    return false;
+                    const msg = "Firestore não está pronto. Não é possível limpar os dados. (Verifique a conexão e autenticação)";
+                    console.error(msg);
+                    return { success: false, error: msg };
                 }
                 try {
                     const candidatesCollectionRef = collection(this.db, `artifacts/${this.appId}/users/${this.userId}/candidates`);
@@ -847,29 +851,35 @@
                     });
                     await Promise.all(deletePromises); // Espera todas as exclusões serem concluídas
                     console.log("Todos os dados foram limpos no Firestore.");
-                    return true;
+                    return { success: true };
                 } catch (e) {
-                    console.error("Erro ao limpar dados do Firestore: ", e);
-                    return false;
+                    const msg = `Erro ao limpar dados do Firestore. Verifique as regras de segurança do Firestore.`;
+                    console.error(msg, e);
+                    return { success: false, error: e.message };
                 }
             }
 
             // Restaura dados a partir de um JSON. Limpa os dados existentes e adiciona os novos.
             async restoreData(jsonData) {
                 if (!this.isAuthReady) {
-                    console.error("Firestore não está pronto. Não é possível restaurar os dados.");
-                    return false;
+                    const msg = "Firestore não está pronto. Não é possível restaurar os dados. (Verifique a conexão e autenticação)";
+                    console.error(msg);
+                    return { success: false, error: msg };
                 }
                 try {
                     const dataToRestore = JSON.parse(jsonData);
                     
                     if (!dataToRestore || !Array.isArray(dataToRestore)) {
-                        console.error('Formato de arquivo inválido. Esperado um array de candidatos.');
-                        return false;
+                        const msg = 'Formato de arquivo inválido. Esperado um array de candidatos.';
+                        console.error(msg);
+                        return { success: false, error: msg };
                     }
 
                     // Limpa todos os dados existentes antes de iniciar a restauração
-                    await this.clearAll();
+                    const clearResult = await this.clearAll();
+                    if (!clearResult.success) {
+                        return clearResult; // Se a limpeza falhar, retorna o erro da limpeza
+                    }
 
                     const candidatesCollectionRef = collection(this.db, `artifacts/${this.appId}/users/${this.userId}/candidates`);
                     const addPromises = [];
@@ -891,10 +901,11 @@
                     }
                     await Promise.all(addPromises); // Espera todas as adições serem concluídas
                     console.log('Dados restaurados com sucesso no Firestore!');
-                    return true;
+                    return { success: true };
                 } catch (e) {
-                    console.error("Erro ao restaurar dados no Firestore: ", e);
-                    return false;
+                    const msg = `Erro ao restaurar dados no Firestore. Verifique o arquivo e as regras de segurança.`;
+                    console.error(msg, e);
+                    return { success: false, error: e.message };
                 }
             }
 
@@ -1064,8 +1075,9 @@
          * Exibe uma notificação temporária no canto superior direito da tela.
          * @param {string} message - A mensagem da notificação.
          * @param {string} type - O tipo de notificação ('success', 'error', 'info'), que afeta a cor.
+         * @param {string} detailedError - Uma mensagem de erro mais detalhada para exibir (opcional).
          */
-        function showNotification(message, type = 'info') {
+        function showNotification(message, type = 'info', detailedError = null) {
             const notification = document.createElement('div');
             notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
                 type === 'success' ? 'bg-green-500 text-white' : 
@@ -1075,7 +1087,10 @@
             notification.innerHTML = `
                 <div class="flex items-center">
                     <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info'} mr-2"></i>
-                    ${message}
+                    <div>
+                        ${message}
+                        ${detailedError ? `<br><span class="text-xs opacity-75">Detalhes: ${detailedError}</span>` : ''}
+                    </div>
                 </div>
             `;
             document.body.appendChild(notification);
@@ -1132,12 +1147,13 @@
                     };
                     
                     // Chama o método da classe do BD para adicionar o candidato ao Firestore
-                    const success = await db.addCandidate(region, candidato);
-                    if (success) {
+                    const result = await db.addCandidate(region, candidato); // Obtém o resultado da operação
+                    if (result.success) {
                         this.reset(); // Limpa o formulário após o sucesso
                         showNotification('Candidato adicionado com sucesso!', 'success');
                     } else {
-                        showNotification('Erro ao adicionar candidato.', 'error');
+                        // Exibe a mensagem de erro específica retornada pela classe do BD
+                        showNotification('Erro ao adicionar candidato.', 'error', result.error);
                     }
                 });
             });
@@ -1185,11 +1201,11 @@
                     const reader = new FileReader();
                     reader.onload = async function(e) {
                         const success = await db.restoreData(e.target.result); // Restaura os dados do arquivo
-                        if (success) {
+                        if (success.success) { // Verifica a propriedade 'success' do resultado
                             showNotification('Dados restaurados com sucesso!', 'success');
                             // O listener 'firebaseDataUpdated' já vai recarregar a UI
                         } else {
-                            showNotification('Erro ao restaurar dados. Verifique o arquivo.', 'error');
+                            showNotification('Erro ao restaurar dados. Verifique o arquivo.', 'error', success.error); // Exibe erro detalhado
                         }
                     };
                     reader.readAsText(file);
@@ -1214,12 +1230,12 @@
                     if (result1) {
                         showConfirmationModal('Tem certeza absoluta? Todos os candidatos cadastrados serão perdidos permanentemente.', async (result2) => {
                             if (result2) {
-                                const success = await db.clearAll(); // Limpa todos os dados no Firestore
-                                if (success) {
+                                const result = await db.clearAll(); // Obtém o resultado da operação
+                                if (result.success) { // Verifica a propriedade 'success' do resultado
                                     showNotification('Todos os dados foram apagados.', 'success');
                                     // O listener 'firebaseDataUpdated' já vai recarregar a UI
                                 } else {
-                                    showNotification('Erro ao apagar dados.', 'error');
+                                    showNotification('Erro ao apagar dados.', 'error', result.error); // Exibe erro detalhado
                                 }
                             }
                         });
