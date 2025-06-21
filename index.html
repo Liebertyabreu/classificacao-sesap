@@ -907,6 +907,51 @@
         // USE UM SISTEMA DE AUTENTICAÇÃO ROBUSTO (COMO FIREBASE AUTHENTICATION) PARA PROTEGER O PAINEL DE ADMINISTRAÇÃO.
         const ADMIN_PASSWORD = "admin123"; 
 
+        // Global references for modal elements
+        let confirmationModal;
+        let confirmationMessage;
+        let confirmYes;
+        let confirmNo;
+        let currentModalCallback = null; // Store the callback for the current modal instance
+
+        /**
+         * Function to initialize modal elements and attach listeners once.
+         * This prevents issues with re-attaching listeners.
+         */
+        function setupModalListeners() {
+            confirmationModal = document.getElementById('confirmationModal');
+            confirmationMessage = document.getElementById('confirmationMessage');
+            confirmYes = document.getElementById('confirmYes');
+            confirmNo = document.getElementById('confirmNo');
+
+            confirmYes.addEventListener('click', () => {
+                if (currentModalCallback) {
+                    currentModalCallback(true);
+                }
+                confirmationModal.classList.add('hidden'); // Hide the modal
+                currentModalCallback = null; // Clear the callback
+            });
+
+            confirmNo.addEventListener('click', () => {
+                if (currentModalCallback) {
+                    currentModalCallback(false);
+                }
+                confirmationModal.classList.add('hidden'); // Hide the modal
+                currentModalCallback = null; // Clear the callback
+            });
+
+            // Allow clicking outside the modal to close it (optional, but good UX)
+            confirmationModal.addEventListener('click', (e) => {
+                if (e.target === confirmationModal) {
+                    if (currentModalCallback) { 
+                         currentModalCallback(false); // Treat as a "No" if clicked outside
+                    }
+                    confirmationModal.classList.add('hidden');
+                    currentModalCallback = null;
+                }
+            });
+        }
+
         /**
          * Atualiza o display de status do banco de dados na interface.
          * Mostra o total de candidatos e o ID do usuário atualmente autenticado.
@@ -986,34 +1031,13 @@
          * @param {Function} callback - A função a ser chamada com `true` (Sim) ou `false` (Não).
          */
         function showConfirmationModal(message, callback) {
-            const confirmationModal = document.getElementById('confirmationModal');
-            const confirmationMessage = document.getElementById('confirmationMessage');
-            const confirmYes = document.getElementById('confirmYes');
-            const confirmNo = document.getElementById('confirmNo');
-
+            // Reutiliza a função de setup, garantindo que os elementos e listeners estejam prontos
+            if (!confirmationModal) { 
+                setupModalListeners();
+            }
             confirmationMessage.textContent = message;
+            currentModalCallback = callback; // Armazena o callback para ser chamado pelos botões do modal
             confirmationModal.classList.remove('hidden'); // Mostra o modal
-
-            // Funções para lidar com os cliques nos botões Sim/Não
-            const handleYes = () => {
-                callback(true);
-                confirmationModal.classList.add('hidden'); // Esconde o modal
-                // Remove os listeners para evitar chamadas duplicadas
-                confirmYes.removeEventListener('click', handleYes);
-                confirmNo.removeEventListener('click', handleNo);
-            };
-
-            const handleNo = () => {
-                callback(false);
-                confirmationModal.classList.add('hidden'); // Esconde o modal
-                // Remove os listeners para evitar chamadas duplicadas
-                confirmYes.removeEventListener('click', handleYes);
-                confirmNo.removeEventListener('click', handleNo);
-            };
-
-            // Adiciona os listeners aos botões
-            confirmYes.addEventListener('click', handleYes);
-            confirmNo.addEventListener('click', handleNo);
         }
 
         /**
@@ -1045,6 +1069,9 @@
         // --- Event Listeners e Lógica Principal ---
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Configura os listeners do modal de confirmação uma única vez
+            setupModalListeners();
+
             // Listener para o evento 'firebaseDataUpdated' disparado pela classe FirebaseSESAPDatabase.
             // Isso garante que a UI seja atualizada sempre que os dados no Firestore mudarem.
             document.addEventListener('firebaseDataUpdated', () => {
