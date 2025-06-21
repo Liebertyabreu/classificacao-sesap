@@ -255,9 +255,8 @@
                                 </div>
                                 <div class="lista-candidatos max-h-64 overflow-y-auto" data-region="2" data-tipo="pcd"></div>
                             </div>
-                            <div class="bg-white border rounded-lg">
-                                <div class="bg-purple-500 text-white p-4 rounded-t-lg">
-                                    <h4 class="font-semibold flex items-center">
+                            <div class="bg-purple-500 text-white p-4 rounded-t-lg">
+                                <h4 class="font-semibold flex items-center">
                                         🎯 PPP - Região 2
                                         <span class="ml-auto bg-purple-600 px-2 py-1 rounded text-sm" data-count="ppp-2">0</span>
                                     </h4>
@@ -323,9 +322,8 @@
                                 </div>
                                 <div class="lista-candidatos max-h-64 overflow-y-auto" data-region="3" data-tipo="pcd"></div>
                             </div>
-                            <div class="bg-white border rounded-lg">
-                                <div class="bg-purple-500 text-white p-4 rounded-t-lg">
-                                    <h4 class="font-semibold flex items-center">
+                            <div class="bg-purple-500 text-white p-4 rounded-t-lg">
+                                <h4 class="font-semibold flex items-center">
                                         🎯 PPP - Região 3
                                         <span class="ml-auto bg-purple-600 px-2 py-1 rounded text-sm" data-count="ppp-3">0</span>
                                     </h4>
@@ -390,9 +388,8 @@
                                 </div>
                                 <div class="lista-candidatos max-h-64 overflow-y-auto" data-region="4" data-tipo="pcd"></div>
                             </div>
-                            <div class="bg-white border rounded-lg">
-                                <div class="bg-purple-500 text-white p-4 rounded-t-lg">
-                                    <h4 class="font-semibold flex items-center">
+                            <div class="bg-purple-500 text-white p-4 rounded-t-lg">
+                                <h4 class="font-semibold flex items-center">
                                         🎯 PPP - Região 4
                                         <span class="ml-auto bg-purple-600 px-2 py-1 rounded text-sm" data-count="ppp-4">0</span>
                                     </h4>
@@ -524,9 +521,8 @@
                                 </div>
                                 <div class="lista-candidatos max-h-64 overflow-y-auto" data-region="6" data-tipo="pcd"></div>
                             </div>
-                            <div class="bg-white border rounded-lg">
-                                <div class="bg-purple-500 text-white p-4 rounded-t-lg">
-                                    <h4 class="font-semibold flex items-center">
+                            <div class="bg-purple-500 text-white p-4 rounded-t-lg">
+                                <h4 class="font-semibold flex items-center">
                                         🎯 PPP - Região 6
                                         <span class="ml-auto bg-purple-600 px-2 py-1 rounded text-sm" data-count="ppp-6">0</span>
                                     </h4>
@@ -591,9 +587,8 @@
                                 </div>
                                 <div class="lista-candidatos max-h-64 overflow-y-auto" data-region="7" data-tipo="pcd"></div>
                             </div>
-                            <div class="bg-white border rounded-lg">
-                                <div class="bg-purple-500 text-white p-4 rounded-t-lg">
-                                    <h4 class="font-semibold flex items-center">
+                            <div class="bg-purple-500 text-white p-4 rounded-t-lg">
+                                <h4 class="font-semibold flex items-center">
                                         🎯 PPP - Região 7
                                         <span class="ml-auto bg-purple-600 px-2 py-1 rounded text-sm" data-count="ppp-7">0</span>
                                     </h4>
@@ -700,40 +695,49 @@
                 this.auth = null;      // Instância do Firebase Auth
                 this.db = null;        // Instância do Firebase Firestore
                 this.userId = null;    // ID do usuário autenticado (anonimamente ou com token)
-                // ID do aplicativo, obtido de uma variável global fornecida pelo ambiente (Canvas)
-                this.appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                
+                // SUA CONFIGURAÇÃO DO FIREBASE INSERIDA DIRETAMENTE AQUI
+                // ESTE É O OBJETO DE CONFIGURAÇÃO DO SEU PROJETO FIREBASE REAL.
+                const firebaseConfig = {
+                    apiKey: "AIzaSyDW4hzu2kb-UWM--3vFcl6y-7ep-pkAYB4",
+                    authDomain: "classificacaosesapweb.firebaseapp.com",
+                    projectId: "classificacaosesapweb",
+                    storageBucket: "classificacaosesapweb.firebasestorage.app",
+                    messagingSenderId: "963297484715",
+                    appId: "1:963297484715:web:4aca1acfb5dae3d9de3cee",
+                    measurementId: "G-WSVD92QZYQ" // measurementId é opcional se não usar Analytics
+                };
+
+                // O appId agora vem diretamente da sua firebaseConfig
+                this.appId = firebaseConfig.appId;
+                
                 // Array local para armazenar uma cópia dos candidatos. Sincronizado pelo listener do Firestore.
                 this.allCandidates = [];
                 // Flag para indicar se a autenticação e a conexão com o Firestore estão prontas
                 this.isAuthReady = false;
                 
                 // Inicia o processo de inicialização assíncrona do Firebase quando a classe é instanciada
-                this.initializeFirebase();
+                this.initializeFirebase(firebaseConfig);
             }
 
             // Método assíncrono para inicializar o Firebase.
             // Conecta-se ao Firebase, autentica o usuário e configura o listener de dados.
-            async initializeFirebase() {
+            async initializeFirebase(firebaseConfig) {
                 try {
-                    // Analisa a configuração do Firebase, que é esperada como uma string JSON global
-                    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-                    
-                    // Inicializa o aplicativo Firebase
+                    // Inicializa o aplicativo Firebase com a sua configuração
                     this.app = initializeApp(firebaseConfig);
                     // Obtém as instâncias dos serviços de autenticação e Firestore
                     this.auth = getAuth(this.app);
                     this.db = getFirestore(this.app);
 
-                    // Tenta autenticar o usuário. Prioriza o token personalizado (__initial_auth_token)
-                    // para sessões autenticadas, caso contrário, autentica anonimamente.
-                    if (typeof __initial_auth_token !== 'undefined') {
-                        await signInWithCustomToken(this.auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(this.auth);
-                    }
+                    // Autentica o usuário anonimamente.
+                    // ATENÇÃO CRÍTICA: PARA UM APP REAL, VOCÊ PRECISARIA DE UM SISTEMA DE LOGIN MAIS SEGURO.
+                    // ESTA AUTENTICAÇÃO ANÔNIMA É PARA QUE SEU APP POSSA ESCREVER NO FIRESTORE
+                    // COM BASE NAS REGRAS DE SEGURANÇA QUE PERMITEM ESCRITA POR USUÁRIOS AUTENTICADOS (MESMO QUE ANÔNIMOS).
+                    await signInAnonymously(this.auth);
                     
-                    // Define o ID do usuário (UID do Firebase ou um UUID gerado aleatoriamente para usuários anônimos)
-                    this.userId = this.auth.currentUser?.uid || crypto.randomUUID();
+                    // Define o ID do usuário (UID do Firebase do usuário anônimo)
+                    this.userId = this.auth.currentUser?.uid;
                     // Marca a autenticação como pronta
                     this.isAuthReady = true;
                     console.log("Firebase inicializado. ID do Usuário:", this.userId);
@@ -742,7 +746,7 @@
                     this._setupCandidatesListener();
                     
                 } catch (error) {
-                    // Em caso de erro na inicialização, registra no console
+                    // Em caso de erro na inicialização, registra no console e notifica
                     console.error("Erro ao inicializar Firebase:", error);
                     showNotification(`Erro ao inicializar Firebase: ${error.message}`, 'error'); // Adiciona notificação de erro
                 }
@@ -772,7 +776,7 @@
                     // Dispara um evento personalizado para notificar a UI de que os dados foram atualizados
                     this._dispatchDataUpdateEvent();
                 }, (error) => {
-                    // Em caso de erro no listener, registra no console
+                    // Em caso de erro no listener, registra no console e notifica
                     console.error("Erro ao receber atualizações do Firestore:", error);
                     showNotification(`Erro ao carregar dados: ${error.message}`, 'error'); // Adiciona notificação de erro
                 });
@@ -1242,7 +1246,6 @@
                     }
                 });
             });
-
             // Simula um clique no primeiro botão de aba ao carregar a página
             // para garantir que a região 1 seja exibida e seus dados carregados.
             document.querySelector('.tab-button[data-region="1"]').click();
