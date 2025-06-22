@@ -58,7 +58,7 @@
                             Classificação SESAP
                         </h1>
                         <p class="text-blue-100 mt-2">Sistema de Classificação por Regiões com Banco de Dados</p>
-                        <p id="userStatus" class="text-blue-100 mt-1 text-sm"></p> <!-- User ID display -->
+                        <!-- O ID do Usuário não será mais exibido aqui para uma UI mais limpa -->
                     </div>
                     <button id="adminToggle" class="bg-blue-800 hover:bg-blue-900 px-4 py-2 rounded-lg transition">
                         <i class="fas fa-cog mr-2"></i>Administração
@@ -91,6 +91,10 @@
                 <div class="mt-4 p-4 bg-white rounded-lg border">
                     <h4 class="font-semibold text-gray-700 mb-2">Status do Banco de Dados:</h4>
                     <div id="dbStatus" class="text-sm text-gray-600"></div>
+                </div>
+                <!-- Exibição do userBrowserId para debug (opcional, para ser removido em produção) -->
+                <div class="mt-2 text-xs text-gray-500">
+                    ID do Navegador: <span id="userBrowserIdDisplay">Carregando...</span>
                 </div>
             </div>
 
@@ -454,9 +458,8 @@
                                 </div>
                                 <div class="lista-candidatos max-h-64 overflow-y-auto" data-region="5" data-tipo="pcd"></div>
                             </div>
-                            <div class="bg-white border rounded-lg">
-                                <div class="bg-purple-500 text-white p-4 rounded-t-lg">
-                                    <h4 class="font-semibold flex items-center">
+                            <div class="bg-purple-500 text-white p-4 rounded-t-lg">
+                                <h4 class="font-semibold flex items-center">
                                         🎯 PPP - Região 5
                                         <span class="ml-auto bg-purple-600 px-2 py-1 rounded text-sm" data-count="ppp-5">0</span>
                                     </h4>
@@ -694,7 +697,8 @@
                 this.app = null;       // Instância do Firebase App
                 this.auth = null;      // Instância do Firebase Auth
                 this.db = null;        // Instância do Firebase Firestore
-                this.userId = null;    // ID do usuário autenticado (anonimamente ou com token)
+                this.userBrowserId = null; // ID único do navegador para persistência de dados
+                this.firebaseAuthUid = null; // UID do usuário autenticado pelo Firebase (anônimo)
                 
                 // SUA CONFIGURAÇÃO DO FIREBASE INSERIDA DIRETAMENTE AQUI
                 // ESTE É O OBJETO DE CONFIGURAÇÃO DO SEU PROJETO FIREBASE REAL.
@@ -715,9 +719,28 @@
                 this.allCandidates = [];
                 // Flag para indicar se a autenticação e a conexão com o Firestore estão prontas
                 this.isAuthReady = false;
+
+                // 1. Obter ou gerar um ID persistente para o navegador (para os dados do Firestore)
+                this._initializeUserBrowserId();
                 
                 // Inicia o processo de inicialização assíncrona do Firebase quando a classe é instanciada
                 this.initializeFirebase(firebaseConfig);
+            }
+
+            // Gera ou recupera um userBrowserId do localStorage
+            _initializeUserBrowserId() {
+                let id = localStorage.getItem('sesap_user_browser_id');
+                if (!id) {
+                    id = crypto.randomUUID(); // Gera um UUID único
+                    localStorage.setItem('sesap_user_browser_id', id);
+                }
+                this.userBrowserId = id;
+                console.log("ID do Navegador (userBrowserId):", this.userBrowserId);
+                // Atualiza o display no painel admin para debug
+                const userBrowserIdDisplay = document.getElementById('userBrowserIdDisplay');
+                if(userBrowserIdDisplay) {
+                    userBrowserIdDisplay.textContent = this.userBrowserId;
+                }
             }
 
             // Método assíncrono para inicializar o Firebase.
@@ -736,11 +759,11 @@
                     // COM BASE NAS REGRAS DE SEGURANÇA QUE PERMITEM ESCRITA POR USUÁRIOS AUTENTICADOS (MESMO QUE ANÔNIMOS).
                     await signInAnonymously(this.auth);
                     
-                    // Define o ID do usuário (UID do Firebase do usuário anônimo)
-                    this.userId = this.auth.currentUser?.uid;
+                    // Define o UID do Firebase do usuário autenticado (anónimo)
+                    this.firebaseAuthUid = this.auth.currentUser?.uid;
                     // Marca a autenticação como pronta
                     this.isAuthReady = true;
-                    console.log("Firebase inicializado. ID do Usuário:", this.userId);
+                    console.log("Firebase inicializado. UID de Autenticação Firebase:", this.firebaseAuthUid);
                     
                     // Uma vez que o Firebase está pronto e o usuário autenticado, configura o listener de dados
                     this._setupCandidatesListener();
@@ -748,7 +771,7 @@
                 } catch (error) {
                     // Em caso de erro na inicialização, registra no console e notifica
                     console.error("Erro ao inicializar Firebase:", error);
-                    showNotification(`Erro ao inicializar Firebase: ${error.message}`, 'error'); // Adiciona notificação de erro
+                    showNotification(`Erro ao inicializar Firebase: ${error.message}. Por favor, verifique se 'Authentication' está habilitado e 'Anonymous' está ativado no seu projeto Firebase no console.`, 'error');
                 }
             }
 
@@ -756,13 +779,13 @@
             // Garante que o array local 'allCandidates' esteja sempre sincronizado com o Firestore.
             _setupCandidatesListener() {
                 // Verifica se a autenticação está pronta antes de configurar o listener
-                if (!this.isAuthReady) {
-                    console.warn("Firestore não está pronto para configurar listener. Aguardando autenticação.");
+                if (!this.isAuthReady || !this.userBrowserId) {
+                    console.warn("Firestore não está pronto para configurar listener. Aguardando autenticação ou userBrowserId.");
                     return;
                 }
-                // Define a referência da coleção de candidatos. O caminho inclui o appId e o userId
-                // para isolar os dados por aplicativo e por usuário.
-                const candidatesCollectionRef = collection(this.db, `artifacts/${this.appId}/users/${this.userId}/candidates`);
+                // Define a referência da coleção de candidatos. O caminho agora usa o userBrowserId
+                // para garantir que os dados sejam persistentes para este navegador.
+                const candidatesCollectionRef = collection(this.db, `artifacts/${this.appId}/browsers/${this.userBrowserId}/candidates`);
                 
                 // onSnapshot: Observa a coleção em tempo real.
                 // O callback é executado inicialmente e sempre que houver uma mudança nos documentos da coleção.
@@ -792,17 +815,20 @@
             // Adiciona um novo candidato ao Firestore.
             async addCandidate(region, candidate) {
                 // Verifica se o Firebase está pronto para operações de escrita
-                if (!this.isAuthReady) {
-                    const msg = "Firestore não está pronto. Candidato não adicionado. (Verifique a conexão e autenticação)";
+                if (!this.isAuthReady || !this.userBrowserId || !this.firebaseAuthUid) {
+                    const msg = "Firestore não está pronto. Candidato não adicionado. (Verifique a conexão, autenticação ou ID do navegador)";
                     console.error(msg);
                     return { success: false, error: msg };
                 }
                 try {
-                    const candidatesCollectionRef = collection(this.db, `artifacts/${this.appId}/users/${this.userId}/candidates`);
+                    // O caminho agora usa o userBrowserId
+                    const candidatesCollectionRef = collection(this.db, `artifacts/${this.appId}/browsers/${this.userBrowserId}/candidates`);
                     await addDoc(candidatesCollectionRef, {
                         ...candidate, // Espalha as propriedades do objeto candidato (nome, pontuacao, tipo)
                         region: region, // Adiciona a região do candidato
-                        timestamp: new Date().toISOString() // Adiciona um timestamp de criação
+                        timestamp: new Date().toISOString(), // Adiciona um timestamp de criação
+                        userBrowserId: this.userBrowserId, // Salva o userBrowserId no documento
+                        firebaseAuthUid: this.firebaseAuthUid // Salva o UID de autenticação do Firebase no documento (para regras)
                     });
                     console.log(`Candidato adicionado no Firestore:`, candidate);
                     return { success: true };
@@ -839,13 +865,14 @@
 
             // Exclui todos os documentos de candidatos do Firestore para o usuário atual.
             async clearAll() {
-                if (!this.isAuthReady) {
-                    const msg = "Firestore não está pronto. Não é possível limpar os dados. (Verifique a conexão e autenticação)";
+                if (!this.isAuthReady || !this.userBrowserId) {
+                    const msg = "Firestore não está pronto. Não é possível limpar os dados. (Verifique a conexão, autenticação ou ID do navegador)";
                     console.error(msg);
                     return { success: false, error: msg };
                 }
                 try {
-                    const candidatesCollectionRef = collection(this.db, `artifacts/${this.appId}/users/${this.userId}/candidates`);
+                    // O caminho agora usa o userBrowserId
+                    const candidatesCollectionRef = collection(this.db, `artifacts/${this.appId}/browsers/${this.userBrowserId}/candidates`);
                     const q = query(candidatesCollectionRef);
                     const querySnapshot = await getDocs(q); // Obtém todos os documentos
 
@@ -865,8 +892,8 @@
 
             // Restaura dados a partir de um JSON. Limpa os dados existentes e adiciona os novos.
             async restoreData(jsonData) {
-                if (!this.isAuthReady) {
-                    const msg = "Firestore não está pronto. Não é possível restaurar os dados. (Verifique a conexão e autenticação)";
+                if (!this.isAuthReady || !this.userBrowserId || !this.firebaseAuthUid) {
+                    const msg = "Firestore não está pronto. Não é possível restaurar os dados. (Verifique a conexão, autenticação ou ID do navegador)";
                     console.error(msg);
                     return { success: false, error: msg };
                 }
@@ -885,7 +912,8 @@
                         return clearResult; // Se a limpeza falhar, retorna o erro da limpeza
                     }
 
-                    const candidatesCollectionRef = collection(this.db, `artifacts/${this.appId}/users/${this.userId}/candidates`);
+                    // O caminho agora usa o userBrowserId
+                    const candidatesCollectionRef = collection(this.db, `artifacts/${this.appId}/browsers/${this.userBrowserId}/candidates`);
                     const addPromises = [];
                     
                     // Itera sobre os dados a serem restaurados e adiciona cada candidato ao Firestore
@@ -897,7 +925,9 @@
                                 pontuacao: parseFloat(candidate.pontuacao),
                                 tipo: candidate.tipo,
                                 region: candidate.region,
-                                timestamp: candidate.timestamp || new Date().toISOString() // Usa timestamp existente ou cria um novo
+                                timestamp: candidate.timestamp || new Date().toISOString(), // Usa timestamp existente ou cria um novo
+                                userBrowserId: this.userBrowserId, // Salva o userBrowserId no documento
+                                firebaseAuthUid: this.firebaseAuthUid // Salva o UID de autenticação do Firebase no documento (para regras)
                             }));
                         } else {
                             console.warn("Candidato inválido no arquivo de restauração, pulando:", candidate);
@@ -993,7 +1023,8 @@
          */
         function updateDbStatusDisplay() {
             const statusDiv = document.getElementById('dbStatus');
-            const userStatusDiv = document.getElementById('userStatus');
+            // A exibição do ID do usuário na interface principal foi removida.
+            // Para debug, o userBrowserId é exibido no painel de administração.
 
             // Verifica se a instância do Firebase e a autenticação estão prontas
             if (db.isAuthReady) {
@@ -1004,12 +1035,9 @@
                         <div><strong>Última atualização (Firestore):</strong> ${new Date().toLocaleString('pt-BR')}</div>
                     </div>
                 `;
-                // Exibe o ID completo do usuário para fins de depuração e colaboração
-                userStatusDiv.textContent = `ID do Usuário: ${db.userId}`;
             } else {
                 // Mensagem de status enquanto o Firebase está inicializando
                 statusDiv.innerHTML = '<div class="text-gray-600">Aguardando conexão com o banco de dados.</div>';
-                userStatusDiv.textContent = 'Autenticando...';
             }
         }
 
