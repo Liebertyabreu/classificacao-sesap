@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Classificação SESAP - Com Banco de Dados</title>
+    <title>Classificação SESAP - Google-First</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,8 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Chosen Palette: Existing palette remains -->
-    <!-- Application Structure Plan: The existing tabbed interface remains for regional classification. The core change is the underlying data persistence moving from client-side localStorage to a server-side NoSQL database (Firestore) managed by Firebase. This enhances data integrity, scalability, and security. The administration panel is updated to reflect this backend change, allowing database operations (backup/restore/clear) against the cloud database. User ID is displayed for context. -->
-    <!-- Visualization & Content Choices: The core functionality of candidate classification and display (forms, lists, counters) remains. The administrative tools are re-engineered to interface with Firestore. Notification system and custom confirmation modal are retained/added for user feedback and interaction. No new complex visualizations are introduced as the primary focus is on robust backend data management. -->
+    <!-- Application Structure Plan: This is a Single-Page Application (SPA) designed exclusively with Google products. It uses Firebase Hosting for deployment, Cloud Firestore for real-time data storage, and Firebase Authentication for user management (anonymous for persistence). The UI remains tabbed for regional classification, with an admin panel for data management. All JavaScript is in one file for simplified deployment. -->
+    <!-- Visualization & Content Choices: Standard forms and dynamic lists for candidate classification. Notification system for user feedback. Custom confirmation modal for actions like data clearing. Debug IDs (userBrowserId) are displayed in the admin panel. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
     <style>
@@ -58,7 +58,6 @@
                             Classificação SESAP
                         </h1>
                         <p class="text-blue-100 mt-2">Sistema de Classificação por Regiões com Banco de Dados</p>
-                        <!-- O ID do Usuário não será mais exibido aqui para uma UI mais limpa -->
                     </div>
                     <button id="adminToggle" class="bg-blue-800 hover:bg-blue-900 px-4 py-2 rounded-lg transition">
                         <i class="fas fa-cog mr-2"></i>Administração
@@ -87,7 +86,6 @@
                 </div>
                 <input type="file" id="restoreFile" accept=".json" class="hidden">
                 
-                <!-- Database Status -->
                 <div class="mt-4 p-4 bg-white rounded-lg border">
                     <h4 class="font-semibold text-gray-700 mb-2">Status do Banco de Dados:</h4>
                     <div id="dbStatus" class="text-sm text-gray-600"></div>
@@ -98,7 +96,6 @@
                 </div>
             </div>
 
-            <!-- Tabs -->
             <div class="flex flex-wrap border-b bg-gray-50">
                 <button class="tab-button active px-6 py-3 font-medium text-gray-700 hover:bg-gray-200 transition" data-region="1">
                     <i class="fas fa-map-marker-alt mr-2"></i>Região 1
@@ -126,12 +123,9 @@
                 </button>
             </div>
 
-            <!-- Tab Contents -->
             <div class="p-6">
-                <!-- Região 1-8 (Template) -->
                 <div class="tab-content active" data-region="1">
                     <div class="grid lg:grid-cols-2 gap-8">
-                        <!-- Form Column -->
                         <div class="bg-gray-50 p-6 rounded-lg border">
                             <h3 class="text-xl font-semibold mb-4 text-gray-800">
                                 <i class="fas fa-user-plus mr-2 text-blue-600"></i>Cadastro de Candidato - Região 1
@@ -166,9 +160,7 @@
                             </form>
                         </div>
 
-                        <!-- Lists Column -->
                         <div class="space-y-6">
-                            <!-- Ampla Concorrência -->
                             <div class="bg-white border rounded-lg">
                                 <div class="bg-yellow-500 text-white p-4 rounded-t-lg">
                                     <h4 class="font-semibold flex items-center">
@@ -179,7 +171,6 @@
                                 <div class="lista-candidatos max-h-64 overflow-y-auto" data-region="1" data-tipo="ampla"></div>
                             </div>
 
-                            <!-- PCD -->
                             <div class="bg-white border rounded-lg">
                                 <div class="bg-green-500 text-white p-4 rounded-t-lg">
                                     <h4 class="font-semibold flex items-center">
@@ -190,10 +181,8 @@
                                 <div class="lista-candidatos max-h-64 overflow-y-auto" data-region="1" data-tipo="pcd"></div>
                             </div>
 
-                            <!-- PPP -->
-                            <div class="bg-white border rounded-lg">
-                                <div class="bg-purple-500 text-white p-4 rounded-t-lg">
-                                    <h4 class="font-semibold flex items-center">
+                            <div class="bg-purple-500 text-white p-4 rounded-t-lg">
+                                <h4 class="font-semibold flex items-center">
                                         🎯 PPP - Região 1
                                         <span class="ml-auto bg-purple-600 px-2 py-1 rounded text-sm" data-count="ppp-1">0</span>
                                     </h4>
@@ -204,7 +193,6 @@
                     </div>
                 </div>
 
-                <!-- Repeat for regions 2-8 -->
                 <div class="tab-content" data-region="2">
                     <div class="grid lg:grid-cols-2 gap-8">
                         <div class="bg-gray-50 p-6 rounded-lg border">
@@ -271,7 +259,6 @@
                     </div>
                 </div>
                 
-                <!-- Continue for regions 3-8 -->
                 <div class="tab-content" data-region="3">
                     <div class="grid lg:grid-cols-2 gap-8">
                         <div class="bg-gray-50 p-6 rounded-lg border">
@@ -671,7 +658,6 @@
         </div>
     </div>
 
-    <!-- Custom Confirmation Modal HTML -->
     <div id="confirmationModal" class="modal-overlay hidden">
         <div class="modal-content-custom">
             <p id="confirmationMessage" class="text-lg font-semibold mb-4"></p>
@@ -683,25 +669,18 @@
     </div>
 
     <script type="module">
-        // Importar os módulos Firebase necessários
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // A classe FirebaseSESAPDatabase gerencia toda a interação com o Firebase Firestore.
-        // Ela encapsula a lógica de inicialização, autenticação, adição, recuperação,
-        // exclusão e restauração de dados, além de manter um array local sincronizado
-        // com o banco de dados em tempo real através de onSnapshot.
         class FirebaseSESAPDatabase {
             constructor() {
-                this.app = null;       // Instância do Firebase App
-                this.auth = null;      // Instância do Firebase Auth
-                this.db = null;        // Instância do Firebase Firestore
-                this.userBrowserId = null; // ID único do navegador para persistência de dados
-                this.firebaseAuthUid = null; // UID do usuário autenticado pelo Firebase (anônimo)
+                this.app = null;
+                this.auth = null;
+                this.db = null;
+                this.userBrowserId = null;
+                this.firebaseAuthUid = null;
                 
-                // SUA CONFIGURAÇÃO DO FIREBASE INSERIDA DIRETAMENTE AQUI
-                // ESTE É O OBJETO DE CONFIGURAÇÃO DO SEU PROJETO FIREBASE REAL.
                 const firebaseConfig = {
                     apiKey: "AIzaSyDW4hzu2kb-UWM--3vFcl6y-7ep-pkAYB4",
                     authDomain: "classificacaosesapweb.firebaseapp.com",
@@ -709,147 +688,112 @@
                     storageBucket: "classificacaosesapweb.firebasestorage.app",
                     messagingSenderId: "963297484715",
                     appId: "1:963297484715:web:4aca1acfb5dae3d9de3cee",
-                    measurementId: "G-WSVD92QZYQ" // measurementId é opcional se não usar Analytics
+                    measurementId: "G-WSVD92QZYQ"
                 };
 
-                // O appId agora vem diretamente da sua firebaseConfig
                 this.appId = firebaseConfig.appId;
-                
-                // Array local para armazenar uma cópia dos candidatos. Sincronizado pelo listener do Firestore.
                 this.allCandidates = [];
-                // Flag para indicar se a autenticação e a conexão com o Firestore estão prontas
                 this.isAuthReady = false;
 
-                // 1. Obter ou gerar um ID persistente para o navegador (para os dados do Firestore)
                 this._initializeUserBrowserId();
-                
-                // Inicia o processo de inicialização assíncrona do Firebase quando a classe é instanciada
                 this.initializeFirebase(firebaseConfig);
             }
 
-            // Gera ou recupera um userBrowserId do localStorage
             _initializeUserBrowserId() {
                 let id = localStorage.getItem('sesap_user_browser_id');
                 if (!id) {
-                    id = crypto.randomUUID(); // Gera um UUID único
+                    id = crypto.randomUUID();
                     localStorage.setItem('sesap_user_browser_id', id);
                 }
                 this.userBrowserId = id;
-                console.log("ID do Navegador (userBrowserId):", this.userBrowserId);
-                // Atualiza o display no painel admin para debug
+                console.log("[FirebaseSESAPDatabase] ID do Navegador (userBrowserId):", this.userBrowserId);
                 const userBrowserIdDisplay = document.getElementById('userBrowserIdDisplay');
                 if(userBrowserIdDisplay) {
                     userBrowserIdDisplay.textContent = this.userBrowserId;
                 }
             }
 
-            // Método assíncrono para inicializar o Firebase.
-            // Conecta-se ao Firebase, autentica o usuário e configura o listener de dados.
             async initializeFirebase(firebaseConfig) {
                 try {
-                    // Inicializa o aplicativo Firebase com a sua configuração
                     this.app = initializeApp(firebaseConfig);
-                    // Obtém as instâncias dos serviços de autenticação e Firestore
                     this.auth = getAuth(this.app);
                     this.db = getFirestore(this.app);
 
-                    // Autentica o usuário anonimamente.
-                    // ATENÇÃO CRÍTICA: PARA UM APP REAL, VOCÊ PRECISARIA DE UM SISTEMA DE LOGIN MAIS SEGURO.
-                    // ESTA AUTENTICAÇÃO ANÔNIMA É PARA QUE SEU APP POSSA ESCREVER NO FIRESTORE
-                    // COM BASE NAS REGRAS DE SEGURANÇA QUE PERMITEM ESCRITA POR USUÁRIOS AUTENTICADOS (MESMO QUE ANÔNIMOS).
+                    console.log("[FirebaseSESAPDatabase] Tentando autenticação anônima...");
+                    // Autentica o utilizador anonimamente.
+                    // Isso garante que request.auth.uid exista nas regras de segurança do Firestore.
                     await signInAnonymously(this.auth);
                     
-                    // Define o UID do Firebase do usuário autenticado (anónimo)
                     this.firebaseAuthUid = this.auth.currentUser?.uid;
-                    // Marca a autenticação como pronta
                     this.isAuthReady = true;
-                    console.log("Firebase inicializado. UID de Autenticação Firebase:", this.firebaseAuthUid);
+                    console.log("[FirebaseSESAPDatabase] Firebase inicializado com sucesso. UID de Autenticação Firebase:", this.firebaseAuthUid);
                     
-                    // Uma vez que o Firebase está pronto e o usuário autenticado, configura o listener de dados
                     this._setupCandidatesListener();
                     
                 } catch (error) {
-                    // Em caso de erro na inicialização, registra no console e notifica
-                    console.error("Erro ao inicializar Firebase:", error);
-                    showNotification(`Erro ao inicializar Firebase: ${error.message}. Por favor, verifique se 'Authentication' está habilitado e 'Anonymous' está ativado no seu projeto Firebase no console.`, 'error');
+                    console.error("[FirebaseSESAPDatabase] Erro ao inicializar Firebase:", error);
+                    showNotification(`Erro ao inicializar Firebase: ${error.message}. Por favor, verifique: 1) Se 'Authentication' está habilitado e 'Anonymous' ativado no seu projeto Firebase no console. 2) Se as Origens JavaScript autorizadas estão corretas.`, 'error');
                 }
             }
 
-            // Configura o listener em tempo real (onSnapshot) para a coleção de candidatos.
-            // Garante que o array local 'allCandidates' esteja sempre sincronizado com o Firestore.
             _setupCandidatesListener() {
-                // Verifica se a autenticação está pronta antes de configurar o listener
-                if (!this.isAuthReady || !this.userBrowserId) {
-                    console.warn("Firestore não está pronto para configurar listener. Aguardando autenticação ou userBrowserId.");
+                if (!this.isAuthReady || !this.userBrowserId || !this.firebaseAuthUid) {
+                    console.warn("[FirebaseSESAPDatabase] Firestore não está pronto para configurar listener. Aguardando autenticação, userBrowserId ou firebaseAuthUid.");
                     return;
                 }
-                // Define a referência da coleção de candidatos. O caminho agora usa o userBrowserId
-                // para garantir que os dados sejam persistentes para este navegador.
                 const candidatesCollectionRef = collection(this.db, `artifacts/${this.appId}/browsers/${this.userBrowserId}/candidates`);
                 
-                // onSnapshot: Observa a coleção em tempo real.
-                // O callback é executado inicialmente e sempre que houver uma mudança nos documentos da coleção.
+                console.log(`[FirebaseSESAPDatabase] Configurando listener para: artifacts/${this.appId}/browsers/${this.userBrowserId}/candidates`);
+
                 onSnapshot(candidatesCollectionRef, (snapshot) => {
-                    this.allCandidates = []; // Limpa o array local para recarregar os dados
+                    this.allCandidates = [];
                     snapshot.forEach((doc) => {
-                        // Para cada documento no snapshot, adiciona seus dados e ID ao array local
                         this.allCandidates.push({ id: doc.id, ...doc.data() });
                     });
-                    console.log("Dados do Firestore atualizados localmente:", this.allCandidates);
-                    // Dispara um evento personalizado para notificar a UI de que os dados foram atualizados
+                    console.log("[FirebaseSESAPDatabase] Dados do Firestore atualizados localmente:", this.allCandidates);
                     this._dispatchDataUpdateEvent();
                 }, (error) => {
-                    // Em caso de erro no listener, registra no console e notifica
-                    console.error("Erro ao receber atualizações do Firestore:", error);
-                    showNotification(`Erro ao carregar dados: ${error.message}`, 'error'); // Adiciona notificação de erro
+                    console.error("[FirebaseSESAPDatabase] Erro ao receber atualizações do Firestore:", error);
+                    showNotification(`Erro ao carregar dados: ${error.message}. Isso pode ser devido a regras de segurança insuficientes para leitura.`, 'error');
                 });
             }
 
-            // Dispara um evento CustomEvent 'firebaseDataUpdated' no objeto document.
-            // Isso permite que outros scripts na página (a UI) reajam às atualizações de dados do Firebase.
             _dispatchDataUpdateEvent() {
                 const event = new CustomEvent('firebaseDataUpdated');
                 document.dispatchEvent(event);
             }
 
-            // Adiciona um novo candidato ao Firestore.
             async addCandidate(region, candidate) {
-                // Verifica se o Firebase está pronto para operações de escrita
                 if (!this.isAuthReady || !this.userBrowserId || !this.firebaseAuthUid) {
                     const msg = "Firestore não está pronto. Candidato não adicionado. (Verifique a conexão, autenticação ou ID do navegador)";
-                    console.error(msg);
+                    console.error("[FirebaseSESAPDatabase]", msg);
                     return { success: false, error: msg };
                 }
                 try {
-                    // O caminho agora usa o userBrowserId
                     const candidatesCollectionRef = collection(this.db, `artifacts/${this.appId}/browsers/${this.userBrowserId}/candidates`);
-                    await addDoc(candidatesCollectionRef, {
-                        ...candidate, // Espalha as propriedades do objeto candidato (nome, pontuacao, tipo)
-                        region: region, // Adiciona a região do candidato
-                        timestamp: new Date().toISOString(), // Adiciona um timestamp de criação
+                    console.log(`[FirebaseSESAPDatabase] Tentando adicionar candidato ao caminho: artifacts/${this.appId}/browsers/${this.userBrowserId}/candidates`);
+                    const docData = {
+                        ...candidate,
+                        region: region,
+                        timestamp: new Date().toISOString(),
                         userBrowserId: this.userBrowserId, // Salva o userBrowserId no documento
                         firebaseAuthUid: this.firebaseAuthUid // Salva o UID de autenticação do Firebase no documento (para regras)
-                    });
-                    console.log(`Candidato adicionado no Firestore:`, candidate);
+                    };
+                    await addDoc(candidatesCollectionRef, docData);
+                    console.log(`[FirebaseSESAPDatabase] Candidato adicionado no Firestore:`, docData);
                     return { success: true };
                 }
                 catch (e) {
-                    // Captura o erro detalhado do Firebase e o retorna
-                    const msg = `Erro ao adicionar candidato ao Firestore. Verifique as regras de segurança do Firestore.`;
-                    console.error(msg, e);
-                    // Retorna a mensagem de erro específica do Firebase para ser exibida
+                    const msg = `Erro ao adicionar candidato ao Firestore. Verifique as regras de segurança do Firestore. Detalhes: ${e.message}`;
+                    console.error("[FirebaseSESAPDatabase]", msg, e);
                     return { success: false, error: e.message }; 
                 }
             }
 
-            // Retorna os candidatos filtrados por região e tipo de vaga do array local 'allCandidates'.
-            // Os dados são pré-ordenados por pontuação.
             getRegionData(region) {
-                // Filtra todos os candidatos para a região especificada
                 const candidatesForRegion = this.allCandidates.filter(c => c.region == region);
                 const regionData = { ampla: [], pcd: [], ppp: [] };
 
-                // Para cada tipo de vaga, filtra e ordena os candidatos da região
                 ['ampla', 'pcd', 'ppp'].forEach(tipo => {
                     regionData[tipo] = candidatesForRegion
                                         .filter(c => c.tipo === tipo)
@@ -858,43 +802,39 @@
                 return regionData;
             }
 
-            // Retorna uma cópia de todos os candidatos atualmente no array local 'allCandidates'.
             getAllData() {
-                return JSON.parse(JSON.stringify(this.allCandidates)); // Retorna uma cópia profunda
+                return JSON.parse(JSON.stringify(this.allCandidates));
             }
 
-            // Exclui todos os documentos de candidatos do Firestore para o usuário atual.
             async clearAll() {
-                if (!this.isAuthReady || !this.userBrowserId) {
-                    const msg = "Firestore não está pronto. Não é possível limpar os dados. (Verifique a conexão, autenticação ou ID do navegador)";
-                    console.error(msg);
+                if (!this.isAuthReady || !this.userBrowserId || !this.firebaseAuthUid) {
+                    const msg = "Firestore não está pronto. Não é possível limpar os dados. (Verifique a conexão, autenticação, userBrowserId ou firebaseAuthUid)";
+                    console.error("[FirebaseSESAPDatabase]", msg);
                     return { success: false, error: msg };
                 }
                 try {
-                    // O caminho agora usa o userBrowserId
                     const candidatesCollectionRef = collection(this.db, `artifacts/${this.appId}/browsers/${this.userBrowserId}/candidates`);
                     const q = query(candidatesCollectionRef);
-                    const querySnapshot = await getDocs(q); // Obtém todos os documentos
+                    const querySnapshot = await getDocs(q);
 
                     const deletePromises = [];
                     querySnapshot.forEach((doc) => {
-                        deletePromises.push(deleteDoc(doc.ref)); // Adiciona uma promessa de exclusão para cada documento
+                        deletePromises.push(deleteDoc(doc.ref));
                     });
-                    await Promise.all(deletePromises); // Espera todas as exclusões serem concluídas
-                    console.log("Todos os dados foram limpos no Firestore.");
+                    await Promise.all(deletePromises);
+                    console.log("[FirebaseSESAPDatabase] Todos os dados foram limpos no Firestore.");
                     return { success: true };
                 } catch (e) {
-                    const msg = `Erro ao limpar dados do Firestore. Verifique as regras de segurança do Firestore.`;
-                    console.error(msg, e);
+                    const msg = `Erro ao limpar dados do Firestore. Verifique as regras de segurança do Firestore. Detalhes: ${e.message}`;
+                    console.error("[FirebaseSESAPDatabase]", msg, e);
                     return { success: false, error: e.message };
                 }
             }
 
-            // Restaura dados a partir de um JSON. Limpa os dados existentes e adiciona os novos.
             async restoreData(jsonData) {
                 if (!this.isAuthReady || !this.userBrowserId || !this.firebaseAuthUid) {
-                    const msg = "Firestore não está pronto. Não é possível restaurar os dados. (Verifique a conexão, autenticação ou ID do navegador)";
-                    console.error(msg);
+                    const msg = "Firestore não está pronto. Não é possível restaurar os dados. (Verifique a conexão, autenticação, userBrowserId ou firebaseAuthUid)";
+                    console.error("[FirebaseSESAPDatabase]", msg);
                     return { success: false, error: msg };
                 }
                 try {
@@ -902,53 +842,48 @@
                     
                     if (!dataToRestore || !Array.isArray(dataToRestore)) {
                         const msg = 'Formato de arquivo inválido. Esperado um array de candidatos.';
-                        console.error(msg);
+                        console.error("[FirebaseSESAPDatabase]", msg);
                         return { success: false, error: msg };
                     }
 
-                    // Limpa todos os dados existentes antes de iniciar a restauração
                     const clearResult = await this.clearAll();
                     if (!clearResult.success) {
-                        return clearResult; // Se a limpeza falhar, retorna o erro da limpeza
+                        return clearResult;
                     }
 
-                    // O caminho agora usa o userBrowserId
                     const candidatesCollectionRef = collection(this.db, `artifacts/${this.appId}/browsers/${this.userBrowserId}/candidates`);
                     const addPromises = [];
                     
-                    // Itera sobre os dados a serem restaurados e adiciona cada candidato ao Firestore
                     for (const candidate of dataToRestore) {
-                        // Validação básica dos campos obrigatórios do candidato
                         if (candidate.nome && candidate.pontuacao !== undefined && candidate.tipo && candidate.region) {
-                            addPromises.push(addDoc(candidatesCollectionRef, {
+                            const docData = {
                                 nome: candidate.nome,
                                 pontuacao: parseFloat(candidate.pontuacao),
                                 tipo: candidate.tipo,
                                 region: candidate.region,
-                                timestamp: candidate.timestamp || new Date().toISOString(), // Usa timestamp existente ou cria um novo
-                                userBrowserId: this.userBrowserId, // Salva o userBrowserId no documento
-                                firebaseAuthUid: this.firebaseAuthUid // Salva o UID de autenticação do Firebase no documento (para regras)
-                            }));
+                                timestamp: candidate.timestamp || new Date().toISOString(),
+                                userBrowserId: this.userBrowserId,
+                                firebaseAuthUid: this.firebaseAuthUid
+                            };
+                            addPromises.push(addDoc(candidatesCollectionRef, docData));
                         } else {
-                            console.warn("Candidato inválido no arquivo de restauração, pulando:", candidate);
+                            console.warn("[FirebaseSESAPDatabase] Candidato inválido no arquivo de restauração, pulando:", candidate);
                         }
                     }
-                    await Promise.all(addPromises); // Espera todas as adições serem concluídas
-                    console.log('Dados restaurados com sucesso no Firestore!');
+                    await Promise.all(addPromises);
+                    console.log('[FirebaseSESAPDatabase] Dados restaurados com sucesso no Firestore!');
                     return { success: true };
                 } catch (e) {
-                    const msg = `Erro ao restaurar dados no Firestore. Verifique o arquivo e as regras de segurança.`;
-                    console.error(msg, e);
+                    const msg = `Erro ao restaurar dados no Firestore. Verifique o arquivo e as regras de segurança. Detalhes: ${e.message}`;
+                    console.error("[FirebaseSESAPDatabase]", msg, e);
                     return { success: false, error: e.message };
                 }
             }
 
-            // Exporta todos os candidatos locais para uma string JSON formatada.
             exportJSON() {
                 return JSON.stringify(this.allCandidates, null, 2);
             }
 
-            // Exporta todos os candidatos locais para uma string CSV.
             exportCSV() {
                 let csv = 'Região,Nome,Pontuação,Tipo,Data/Hora\n';
                 this.allCandidates.forEach(candidato => {
@@ -960,29 +895,18 @@
             }
         }
 
-        // Instancia o banco de dados Firebase
         const db = new FirebaseSESAPDatabase();
+        window.db = db; // Expose to global scope for debugging
 
-        // Variável global para armazenar a região atualmente ativa na interface.
-        // É usada para recarregar a visão correta após atualizações de dados.
         let currentActiveRegion = '1';
-
-        // ATENÇÃO: PARA FINS DE DEMONSTRAÇÃO, A SENHA ESTÁ AQUI.
-        // EM UM AMBIENTE DE PRODUÇÃO REAL, VOCÊ NUNCA DEVE ARMAZENAR SENHAS DIRETAMENTE NO CÓDIGO JAVASCRIPT DO CLIENTE.
-        // USE UM SISTEMA DE AUTENTICAÇÃO ROBUSTO (COMO FIREBASE AUTHENTICATION) PARA PROTEGER O PAINEL DE ADMINISTRAÇÃO.
         const ADMIN_PASSWORD = "Adm1n"; 
 
-        // Global references for modal elements
         let confirmationModal;
         let confirmationMessage;
         let confirmYes;
         let confirmNo;
-        let currentModalCallback = null; // Store the callback for the current modal instance
+        let currentModalCallback = null;
 
-        /**
-         * Function to initialize modal elements and attach listeners once.
-         * This prevents issues with re-attaching listeners.
-         */
         function setupModalListeners() {
             confirmationModal = document.getElementById('confirmationModal');
             confirmationMessage = document.getElementById('confirmationMessage');
@@ -993,23 +917,22 @@
                 if (currentModalCallback) {
                     currentModalCallback(true);
                 }
-                confirmationModal.classList.remove('visible'); // Esconde o modal
-                currentModalCallback = null; // Limpa o callback
+                confirmationModal.classList.remove('visible');
+                currentModalCallback = null;
             });
 
             confirmNo.addEventListener('click', () => {
                 if (currentModalCallback) {
                     currentModalCallback(false);
                 }
-                confirmationModal.classList.remove('visible'); // Esconde o modal
-                currentModalCallback = null; // Limpa o callback
+                confirmationModal.classList.remove('visible');
+                currentModalCallback = null;
             });
 
-            // Allow clicking outside the modal to close it (optional, but good UX)
             confirmationModal.addEventListener('click', (e) => {
                 if (e.target === confirmationModal) {
                     if (currentModalCallback) { 
-                         currentModalCallback(false); // Trata como "Não" se clicado fora
+                         currentModalCallback(false);
                     }
                     confirmationModal.classList.remove('visible');
                     currentModalCallback = null;
@@ -1017,16 +940,8 @@
             });
         }
 
-        /**
-         * Atualiza o display de status do banco de dados na interface.
-         * Mostra o total de candidatos e o ID do usuário atualmente autenticado.
-         */
         function updateDbStatusDisplay() {
             const statusDiv = document.getElementById('dbStatus');
-            // A exibição do ID do usuário na interface principal foi removida.
-            // Para debug, o userBrowserId é exibido no painel de administração.
-
-            // Verifica se a instância do Firebase e a autenticação estão prontas
             if (db.isAuthReady) {
                 const totalCandidatos = db.allCandidates.length;
                 statusDiv.innerHTML = `
@@ -1036,35 +951,21 @@
                     </div>
                 `;
             } else {
-                // Mensagem de status enquanto o Firebase está inicializando
                 statusDiv.innerHTML = '<div class="text-gray-600">Aguardando conexão com o banco de dados.</div>';
             }
         }
 
-        /**
-         * Carrega e exibe os dados dos candidatos para a região especificada.
-         * Esta função é chamada quando a aba de uma região é ativada ou quando os dados são atualizados.
-         * @param {string} region - O número da região (ex: '1', '2') cujos dados serão exibidos.
-         */
         function loadRegionData(region) {
-            // Obtém os dados dos candidatos para a região e os tipos de vaga específicos
             const regionData = db.getRegionData(region);
-
-            // Itera sobre cada tipo de vaga para atualizar as listas e contadores correspondentes
             ['ampla', 'pcd', 'ppp'].forEach(tipo => {
-                // Seleciona o contêiner da lista de candidatos e o elemento contador
                 const lista = document.querySelector(`.lista-candidatos[data-region="${region}"][data-tipo="${tipo}"]`);
                 const counter = document.querySelector(`[data-count="${tipo}-${region}"]`);
-                
                 if (lista && counter) {
-                    lista.innerHTML = ''; // Limpa o conteúdo atual da lista
-                    counter.textContent = regionData[tipo].length; // Atualiza o contador de candidatos
-
+                    lista.innerHTML = '';
+                    counter.textContent = regionData[tipo].length;
                     if (regionData[tipo].length === 0) {
-                        // Exibe uma mensagem se não houver candidatos para esta categoria na região
                         lista.innerHTML = '<div class="p-4 text-gray-500 text-center">Nenhum candidato cadastrado</div>';
                     } else {
-                        // Popula a lista com os dados dos candidatos
                         regionData[tipo].forEach((candidato, index) => {
                             const item = document.createElement('div');
                             item.className = 'flex justify-between items-center p-3 border-b border-gray-200 hover:bg-gray-50';
@@ -1088,27 +989,15 @@
             });
         }
 
-        /**
-         * Exibe um modal de confirmação personalizado, substituindo o `window.confirm`.
-         * @param {string} message - A mensagem a ser exibida no modal.
-         * @param {Function} callback - A função a ser chamada com `true` (Sim) ou `false` (Não).
-         */
         function showConfirmationModal(message, callback) {
-            // Garante que os elementos e listeners do modal estejam prontos
             if (!confirmationModal) { 
                 setupModalListeners();
             }
             confirmationMessage.textContent = message;
-            currentModalCallback = callback; // Armazena o callback para ser chamado pelos botões do modal
-            confirmationModal.classList.add('visible'); // Mostra o modal
+            currentModalCallback = callback;
+            confirmationModal.classList.add('visible');
         }
 
-        /**
-         * Exibe uma notificação temporária no canto superior direito da tela.
-         * @param {string} message - A mensagem da notificação.
-         * @param {string} type - O tipo de notificação ('success', 'error', 'info'), que afeta a cor.
-         * @param {string} detailedError - Uma mensagem de erro mais detalhada para exibir (opcional).
-         */
         function showNotification(message, type = 'info', detailedError = null) {
             const notification = document.createElement('div');
             notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
@@ -1126,79 +1015,57 @@
                 </div>
             `;
             document.body.appendChild(notification);
-            
-            // Remove a notificação após 3 segundos
             setTimeout(() => {
                 notification.remove();
             }, 3000);
         }
 
-        // --- Event Listeners e Lógica Principal ---
-
         document.addEventListener('DOMContentLoaded', () => {
-            // Configura os listeners do modal de confirmação uma única vez
             setupModalListeners();
 
-            // Listener para o evento 'firebaseDataUpdated' disparado pela classe FirebaseSESAPDatabase.
-            // Isso garante que a UI seja atualizada sempre que os dados no Firestore mudarem.
             document.addEventListener('firebaseDataUpdated', () => {
-                loadRegionData(currentActiveRegion); // Recarrega os dados da região ativa
-                updateDbStatusDisplay();             // Atualiza o status do BD
+                loadRegionData(currentActiveRegion);
+                updateDbStatusDisplay();
             });
 
-            // Event listeners para os botões das abas de região
             document.querySelectorAll('.tab-button').forEach(button => {
                 button.addEventListener('click', function() {
                     const region = this.dataset.region;
-                    currentActiveRegion = region; // Atualiza a região ativa globalmente
-                    
-                    // Remove a classe 'active' de todas as abas e conteúdos
+                    currentActiveRegion = region;
                     document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
                     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                    
-                    // Adiciona a classe 'active' à aba e conteúdo clicados
                     this.classList.add('active');
                     document.querySelector(`.tab-content[data-region="${region}"]`).classList.add('active');
-                    
-                    loadRegionData(region); // Carrega e exibe os dados para a nova região ativa
+                    loadRegionData(region);
                 });
             });
 
-            // Event listeners para os formulários de cadastro de candidato
             document.querySelectorAll('.candidate-form').forEach(form => {
                 form.addEventListener('submit', async function(e) {
                     e.preventDefault();
-                    
                     const region = this.dataset.region;
                     const formData = new FormData(this);
-                    
                     const candidato = {
                         nome: formData.get('nome'),
                         pontuacao: parseFloat(formData.get('pontuacao')),
                         tipo: formData.get('tipo')
                     };
-                    
-                    // Chama o método da classe do BD para adicionar o candidato ao Firestore
-                    const result = await db.addCandidate(region, candidato); // Obtém o resultado da operação
+                    const result = await db.addCandidate(region, candidato);
                     if (result.success) {
-                        this.reset(); // Limpa o formulário após o sucesso
+                        this.reset();
                         showNotification('Candidato adicionado com sucesso!', 'success');
                     } else {
-                        // Exibe a mensagem de erro específica retornada pela classe do BD
                         showNotification('Erro ao adicionar candidato.', 'error', result.error);
                     }
                 });
             });
 
-            // Event listener para o botão de alternar o painel administrativo
             document.getElementById('adminToggle').addEventListener('click', function() {
                 const panel = document.getElementById('adminPanel');
                 if (panel.classList.contains('active')) {
-                    // Se o painel já estiver ativo, apenas fecha sem pedir senha novamente
                     panel.classList.remove('active');
                     this.innerHTML = '<i class="fas fa-cog mr-2"></i>Administração';
                 } else {
-                    // Se o painel estiver fechado, pede a senha
                     const passwordAttempt = prompt("Por favor, insira a senha de administração:");
                     if (passwordAttempt === ADMIN_PASSWORD) {
                         panel.classList.add('active');
@@ -1209,9 +1076,8 @@
                 }
             });
 
-            // Event listener para o botão de Backup JSON
             document.getElementById('backupBtn').addEventListener('click', function() {
-                const dataStr = db.exportJSON(); // Exporta os dados como JSON
+                const dataStr = db.exportJSON();
                 const dataBlob = new Blob([dataStr], {type:'application/json'});
                 const url = URL.createObjectURL(dataBlob);
                 const link = document.createElement('a');
@@ -1221,32 +1087,28 @@
                 showNotification('Backup criado com sucesso!', 'success');
             });
 
-            // Event listener para o botão de Restaurar
             document.getElementById('restoreBtn').addEventListener('click', function() {
                 document.getElementById('restoreFile').click();
             });
 
-            // Event listener para a seleção de arquivo de restauração
             document.getElementById('restoreFile').addEventListener('change', async function(e) {
                 const file = e.target.files[0];
                 if (file) {
                     const reader = new FileReader();
                     reader.onload = async function(e) {
-                        const success = await db.restoreData(e.target.result); // Restaura os dados do arquivo
-                        if (success.success) { // Verifica a propriedade 'success' do resultado
+                        const success = await db.restoreData(e.target.result);
+                        if (success.success) {
                             showNotification('Dados restaurados com sucesso!', 'success');
-                            // O listener 'firebaseDataUpdated' já vai recarregar a UI
                         } else {
-                            showNotification('Erro ao restaurar dados. Verifique o arquivo.', 'error', success.error); // Exibe erro detalhado
+                            showNotification('Erro ao restaurar dados. Verifique o arquivo.', 'error', success.error);
                         }
                     };
                     reader.readAsText(file);
                 }
             });
 
-            // Event listener para o botão de Exportar CSV
             document.getElementById('exportCsvBtn').addEventListener('click', function() {
-                const csvData = db.exportCSV(); // Exporta os dados como CSV
+                const csvData = db.exportCSV();
                 const csvBlob = new Blob([csvData], {type:'text/csv'});
                 const url = URL.createObjectURL(csvBlob);
                 const link = document.createElement('a');
@@ -1256,28 +1118,24 @@
                 showNotification('Relatório CSV exportado com sucesso!', 'success');
             });
 
-            // Event listener para o botão Limpar Tudo
             document.getElementById('clearAllBtn').addEventListener('click', function() {
                 showConfirmationModal('ATENÇÃO: Esta ação irá apagar TODOS os dados de TODAS as regiões PERMANENTEMENTE. Deseja continuar?', async (result1) => {
                     if (result1) {
                         showConfirmationModal('Tem certeza absoluta? Todos os candidatos cadastrados serão perdidos permanentemente.', async (result2) => {
                             if (result2) {
-                                const result = await db.clearAll(); // Obtém o resultado da operação
-                                if (result.success) { // Verifica a propriedade 'success' do resultado
+                                const result = await db.clearAll();
+                                if (result.success) {
                                     showNotification('Todos os dados foram apagados.', 'success');
-                                    // O listener 'firebaseDataUpdated' já vai recarregar a UI
                                 } else {
-                                    showNotification('Erro ao apagar dados.', 'error', result.error); // Exibe erro detalhado
+                                    showNotification('Erro ao apagar dados.', 'error', result.error);
                                 }
                             }
                         });
                     }
                 });
             });
-            // Simula um clique no primeiro botão de aba ao carregar a página
-            // para garantir que a região 1 seja exibida e seus dados carregados.
             document.querySelector('.tab-button[data-region="1"]').click();
         });
     </script>
 </body>
-</html>
+</ht
